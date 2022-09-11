@@ -33,10 +33,6 @@ namespace _16.asynchronousProgramming
                 Thread _receiveThread = new Thread(delegate () { Calculate(startNumber, startNumber + quantityPat); });
                 _receiveThread.Start();
                 _activCountThread++;
-                if (_countThread == _activCountThread)
-                {
-                   
-                }
             }
             while(c<_countThread)
             {
