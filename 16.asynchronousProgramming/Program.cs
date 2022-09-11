@@ -10,92 +10,82 @@ namespace _16.asynchronousProgramming
     class Program
     {
         //вычислить количество чисел на промежутке от 1_000_000 до 2_000_000 в котором сумма цифр будет кратна последней цифре без остатка
+        //ответ 900_000
         private static int _number1 = 1_000_000;
         private static int _number2 = 2_000_000;
-        private static int _quantityNumber1 = 0;
-        private static int _quantityNumber2 = 0;
+        private static int _quantityNumber = 0;
+        private static int c = 0;
+        private static int _countThread;
+        private static int _activCountThread=0;
+        private static object _locker=new object();
         static void Main(string[] args)
         {
-            
-           Thread _receiveThread = new Thread(new ThreadStart(Сalculate1));
-            _receiveThread.Start();
-            Thread _receiveThread2 = new Thread(new ThreadStart(Сalculate2));
-            _receiveThread2.Start();
+            DateTime time1 = DateTime.Now; //удалить
+
+            //ThreadPool.GetAvailableThreads(out countThread, out int completionPortThreads); //находим количество доступных потоков и засовываем в countThread 
+            _countThread = 10;
+            int quantityNum = _number2 - _number1; //количество чисел
+            int quantityPat = quantityNum / _countThread; //находим часть от количества чисел которую можно взять в один поток 
+
+            for (int i = 0; i < _countThread; i++)
+            {
+                int startNumber = i * quantityPat + _number1;
+                Thread _receiveThread = new Thread(delegate () { Calculate(startNumber, startNumber + quantityPat); });
+                _receiveThread.Start();
+                _activCountThread++;
+                if (_countThread == _activCountThread)
+                {
+                   
+                }
+            }
+            while(c<_countThread)
+            {
+                Thread.Sleep(10);
+            }
+            GetDisplay(_quantityNumber);
+
+            DateTime time2 = DateTime.Now; //удалить
+            double countTime = (time2 - time1).TotalSeconds; //удалить
+            Console.WriteLine($"Количество секунд :{countTime}"); //удалить
 
             Console.ReadLine();
         }
-        static void Сalculate1()
+
+
+        static void Calculate(int min, int max)
         {
-            string currentNumber;
-            int result = 0;
+            
 
-            for (int i = _number1; i < (_number1+_number2)/2; i++)
+            //остатком от деления найти последнее число и все оставшиеся
+            for (int i = min; i <= max; i++)
             {
-                currentNumber = i.ToString();
-                int sum = 0;
+                int currentNumber;
+                currentNumber = i;
 
-                for (int j = 0; j < currentNumber.Length; j++)
+                int lastNumber = (currentNumber % 10);//нашли последнию цифру от числа
+                int sum=0;
+                while(currentNumber>0)
                 {
-                    string current = currentNumber[j].ToString();
-                    sum += int.Parse(current);
-
+                    currentNumber /= 10;
+                    //Console.WriteLine(currentNumber % 10);
+                    sum += currentNumber % 10;
                 }
-                string lastNumber = currentNumber[currentNumber.Length - 1].ToString();
-                int multiplier = int.Parse(lastNumber);
-
-                if (multiplier != 0)
+                sum += lastNumber;
+                if (lastNumber != 0)
                 {
-                    if (sum % multiplier == 0)
+                    lock (_locker) //пока один поток не запишет в переменную _quantityNumber другие не станут записывать
                     {
-                        result++;
+                        _quantityNumber++;
                     }
-
                 }
             }
-            _quantityNumber1 = result;
-            if(_quantityNumber2>0)
-            {
-                Console.WriteLine($"Количество чисел на промежутке от {_number1} до {_number2} в котором сумма цифр будет " +
-                $"\nкратна последней цифре без остатка равна:" +
-                $"\n{_quantityNumber1+ _quantityNumber2}");
-            }
+            c++;
         }
 
-        static void Сalculate2()
+        static void GetDisplay(int quantityNumber)
         {
-            string currentNumber;
-            int result = 0;
-
-            for (int i = (_number1 + _number2) / 2; i <= _number2; i++)
-            {
-                currentNumber = i.ToString(); 
-                int sum = 0;
-
-                for (int j = 0; j < currentNumber.Length; j++)
-                {
-                    string current = currentNumber[j].ToString();
-                    sum += int.Parse(current);
-
-                }
-                string lastNumber = currentNumber[currentNumber.Length - 1].ToString();
-                int multiplier = int.Parse(lastNumber);
-
-                if (multiplier != 0)
-                {
-                    if (sum % multiplier == 0)
-                    {
-                        result++;
-                    }
-
-                }
-            }
-            _quantityNumber2 = result;
-            if (_quantityNumber1 > 0)
-            {
-                Console.WriteLine($"Количество чисел на промежутке от {_number1} до {_number2} в котором сумма цифр будет " +
-                $"\nкратна последней цифре без остатка равна:" +
-                $"\n{_quantityNumber1 + _quantityNumber2}");
-            }
+            Console.WriteLine($"Кол-во чисел удовлетворяющих условию = {quantityNumber}");
         }
     }
+
 }
